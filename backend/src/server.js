@@ -52,14 +52,16 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Success" });
 });
 
-// make our app ready for deployment
-if (ENV.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../admin/dist")));
+// serve static files for the web app
+app.use(express.static(path.join(__dirname, "../web/dist")));
 
-  app.get("/{*any}", (req, res) => {
-    res.sendFile(path.join(__dirname, "../admin", "dist", "index.html"));
-  });
-}
+// catch all handler: send back index.html for client-side routing
+app.get("/{*any}", (req, res) => {
+  res.sendFile(path.join(__dirname, "../web", "dist", "index.html"));
+});
+
+// make our app ready for deployment
+// static and catch all already handled above
 
 const startServer = async () => {
   await connectDB();
