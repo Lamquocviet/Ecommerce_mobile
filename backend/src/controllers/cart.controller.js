@@ -15,6 +15,12 @@ export async function getCart(req, res) {
       });
     }
 
+    const invalidItems = cart.items.filter((item) => !item.product);
+    if (invalidItems.length > 0) {
+      cart.items = cart.items.filter((item) => item.product);
+      await cart.save();
+    }
+
     res.status(200).json({ cart });
   } catch (error) {
     console.error("Error in getCart controller:", error);

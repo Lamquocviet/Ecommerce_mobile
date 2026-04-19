@@ -42,13 +42,14 @@
         }
       ],
       [
-        "@sentry/react-native/expo",
+        "@stripe/stripe-react-native",
         {
-          "url": "https://sentry.io/",
-          "project": "ecommerce-tut",
-          "organization": "codesistency-gs"
+          "merchantIdentifier": "merchant.com.anonymous.mobile",
+          "enableGooglePay": true
         }
-      ]
+      ],
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
