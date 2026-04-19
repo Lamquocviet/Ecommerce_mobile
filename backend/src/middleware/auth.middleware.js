@@ -1,4 +1,4 @@
-import { requireAuth } from "@clerk/express";
+import { clerkClient, requireAuth } from "@clerk/express";
 import { User } from "../models/user.model.js";
 import { ENV } from "../config/env.js";
 
@@ -6,21 +6,40 @@ export const protectRoute = [
   requireAuth(),
   async (req, res, next) => {
     try {
-      console.log("auth:", req.auth);
+      const auth = req.auth();
+      console.log("auth:", auth);
 
-      if (!req.auth || !req.auth.userId) {
+      if (!auth || !auth.userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const clerkId = req.auth.userId;
+      const clerkId = auth.userId;
+      let email = auth.sessionClaims?.email;
+
+      if (!email) {
+        try {
+          const clerkUser = await clerkClient.users.getUser(clerkId);
+          email =
+            clerkUser.primaryEmailAddress?.emailAddress ||
+            clerkUser.emailAddresses?.[0]?.emailAddress ||
+            undefined;
+        } catch (fetchError) {
+          console.warn("Unable to fetch Clerk user email:", fetchError?.message || fetchError);
+        }
+      }
 
       let user = await User.findOne({ clerkId });
 
       if (!user) {
-        user = await User.create({
-          clerkId,
-          email: req.auth.sessionClaims?.email || "",
-        });
+        const userData = { clerkId };
+        if (typeof email === "string" && email.trim()) {
+          userData.email = email.trim();
+        }
+
+        user = await User.create(userData);
+      } else if (!user.email && typeof email === "string" && email.trim()) {
+        user.email = email.trim();
+        await user.save();
       }
 
       req.user = user;
