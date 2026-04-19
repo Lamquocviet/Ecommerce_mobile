@@ -6,11 +6,12 @@ export const setAuthTokenProvider = (provider: () => Promise<string | null>) => 
   tokenProvider = provider;
 };
 
-export const api: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000',
+export const api = axios.create({
+  baseURL: "http://localhost:3000",
+  withCredentials: true,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    "Content-Type": "application/json",
+  },
 });
 
 api.interceptors.request.use(async (config) => {
