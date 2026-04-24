@@ -36,7 +36,7 @@ export const WishlistPage = () => {
         <p className="mt-3 text-sm text-white/70">Your saved items are ready for checkout whenever you want.</p>
       </div>
       {wishlist.length ? (
-        <div className="grid gap-6 xl:grid-cols-2">
+        <div className="grid gap-6 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2">
           {wishlist.map((product) => (
             <WishlistItem
               key={product._id}
