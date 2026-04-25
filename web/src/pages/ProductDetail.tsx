@@ -4,6 +4,7 @@ import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { SkeletonLoader } from "@/components/SkeletonLoader";
 import { useCart } from "@/hooks/useCart";
+import { useToast } from "@/contexts/ToastContext";
 import { useProductDetail } from "@/hooks/useProductDetail";
 import { useWishlist } from "@/hooks/useWishlist";
 
@@ -11,6 +12,7 @@ export const ProductDetailPage = () => {
   const { id } = useParams();
   const { data: product, isLoading, isError, error } = useProductDetail(id);
   const { addToCart } = useCart();
+  const { addToast } = useToast();
   const { isInWishlist, toggleWishlist, isAdding, isRemoving } = useWishlist();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
@@ -107,15 +109,16 @@ export const ProductDetailPage = () => {
         <div className="space-y-3">
           <Button
             variant="primary"
-            onClick={() =>
+            onClick={() => {
               addToCart({
                 productId: product._id,
                 name: product.name,
                 price: product.price,
                 quantity: 1,
                 image: product.images[0],
-              })
-            }
+              });
+              addToast(`${product.name} added to cart!`, 'success');
+            }}
             className="w-full py-4"
           >
             Add to cart

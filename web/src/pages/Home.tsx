@@ -3,12 +3,14 @@ import { ProductCard } from "@/components/ProductCard";
 import { SkeletonLoader } from "@/components/SkeletonLoader";
 import { useCart } from "@/hooks/useCart";
 import { useProducts } from "@/hooks/useProducts";
+import { useToast } from "@/contexts/ToastContext";
 import { Sidebar } from "@/components/Sidebar";
 import { HeroBanner } from "@/components/HeroBanner";
 
 export const HomePage = () => {
   const { data, isLoading, isError, error } = useProducts();
   const { addToCart } = useCart();
+  const { addToast } = useToast();
 
   return (
     <div className="flex flex-col">
@@ -67,15 +69,16 @@ export const HomePage = () => {
                   <ProductCard
                     key={product._id}
                     product={product}
-                    onAddToCart={() =>
+                    onAddToCart={() => {
                       addToCart({
                         productId: product._id,
                         name: product.name,
                         price: product.price,
                         quantity: 1,
                         image: product.images[0],
-                      })
-                    }
+                      });
+                      addToast(`${product.name} added to cart!`, 'success');
+                    }}
                   />
                 ))}
           </div>

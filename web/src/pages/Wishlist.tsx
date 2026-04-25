@@ -1,15 +1,14 @@
-import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { WishlistItem } from '@/components/WishlistItem';
-import { useProducts } from '@/hooks/useProducts';
+import { useWishlist } from '@/hooks/useWishlist';
 import { useCart } from '@/hooks/useCart';
+import { useToast } from '@/contexts/ToastContext';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 
 export const WishlistPage = () => {
-  const { data, isLoading, isError, error } = useProducts();
+  const { wishlistItems, isLoading } = useWishlist();
   const { addToCart } = useCart();
-
-  const wishlist = useMemo(() => data?.slice(0, 4) ?? [], [data]);
+  const { addToast } = useToast();
 
   if (isLoading) {
     return (
@@ -21,35 +20,28 @@ export const WishlistPage = () => {
     );
   }
 
-  if (isError) {
-    return (
-      <div className="rounded-4xl border border-white/10 bg-card p-8 text-center text-white/70">
-        {error?.message ?? 'Unable to load wishlist items.'}
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
       <div className="rounded-4xl border border-white/10 bg-card p-8 shadow-glow">
         <h1 className="text-3xl font-semibold text-white">Wishlist</h1>
         <p className="mt-3 text-sm text-white/70">Your saved items are ready for checkout whenever you want.</p>
       </div>
-      {wishlist.length ? (
+      {wishlistItems.length ? (
         <div className="grid gap-6 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2">
-          {wishlist.map((product) => (
+          {wishlistItems.map((product) => (
             <WishlistItem
               key={product._id}
               product={product}
-              onAddToCart={() =>
+              onAddToCart={() => {
                 addToCart({
                   productId: product._id,
                   name: product.name,
                   price: product.price,
                   quantity: 1,
                   image: product.images[0]
-                })
-              }
+                });
+                addToast(`${product.name} added to cart!`, 'success');
+              }}
             />
           ))}
         </div>

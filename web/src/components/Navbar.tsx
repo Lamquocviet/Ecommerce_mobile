@@ -2,6 +2,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
 import { ShoppingCart, Search } from 'lucide-react';
 import { useState } from 'react';
+import { useCart } from '@/hooks/useCart';
 
 const navItems = [
   { label: 'Home', path: '/' },
@@ -12,7 +13,7 @@ const navItems = [
 
 export const Navbar = () => {
   const [search, setSearch] = useState('');
-
+  const { totalQuantity } = useCart();
   const handleSearch = (e) => {
     e.preventDefault();
     console.log('Search:', search);
@@ -71,10 +72,11 @@ export const Navbar = () => {
             className="relative rounded-2xl border border-white/10 bg-card p-2 hover:bg-white/5 transition"
           >
             <ShoppingCart className="h-5 w-5 text-white" />
-            {/* badge */}
-            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] text-black">
-              2
-            </span>
+            {totalQuantity > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-semibold text-black">
+                {totalQuantity}
+              </span>
+            )}
           </Link>
 
           {/* AUTH */}
