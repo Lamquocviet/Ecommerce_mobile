@@ -1,80 +1,90 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useWishlistStore } from '@/store/wishlistStore';
+import { useProducts } from '@/hooks/useProducts';
 import type { Product } from '@/types';
 
 export const useWishlist = () => {
   const { items, addItem, removeItem, isInWishlist, clearWishlist } = useWishlistStore();
   const queryClient = useQueryClient();
 
-  // Fetch wishlist from server on mount
-  const { isLoading, data: serverWishlist, refetch } = useQuery({
+  // 🔥 lấy toàn bộ products (để map)
+  const { data: allProducts } = useProducts();
+
+  // Fetch wishlist IDs
+  const { isLoading, refetch } = useQuery({
     queryKey: ['wishlist'],
     queryFn: async () => {
       try {
-        const response = await api.get<{ wishlist: Product[] }>('/api/users/wishlist');
-        console.log('Wishlist fetched:', response.data.wishlist);
+        const response = await api.get<{ wishlist: string[] }>('/api/users/wishlist');
         return response.data.wishlist || [];
       } catch (error) {
         console.error('Failed to fetch wishlist:', error);
         return [];
       }
     },
-    onSuccess: (data) => {
-      console.log('Wishlist sync to store:', data);
-      // Clear and repopulate store with server data
-      clearWishlist();
-      data?.forEach((product) => {
-        console.log('Adding product to wishlist:', product._id);
-        addItem(product);
-      });
-    },
-    staleTime: Infinity, // Never consider data stale
-    gcTime: 1000 * 60 * 60, // Cache for 1 hour
+
+    onSuccess: (ids) => {
+  if (!allProducts) return;
+
+  const mappedProducts = allProducts.filter((p) =>
+    ids.includes(p._id)
+  );
+
+  // 🔥 chỉ update nếu khác
+  const currentIds = items.map((i) => i._id).sort();
+  const newIds = mappedProducts.map((i) => i._id).sort();
+
+  const isDifferent =
+    currentIds.length !== newIds.length ||
+    currentIds.some((id, i) => id !== newIds[i]);
+
+  if (isDifferent) {
+    clearWishlist();
+    mappedProducts.forEach(addItem);
+  }
+},
+
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60,
   });
 
-  // Add to wishlist mutation
+  // Add
   const addToWishlistMutation = useMutation({
     mutationFn: async (product: Product) => {
-      const response = await api.post<{ message: string; wishlist: string[] }>('/api/users/wishlist', {
+      const response = await api.post('/api/users/wishlist', {
         productId: product._id,
       });
       return response.data;
     },
     onSuccess: (_, product) => {
-      addItem(product);
-      // Refetch to sync with server
+      addItem(product); // 🔥 optimistic update
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-    },
-    onError: (error) => {
-      console.error('Failed to add to wishlist:', error);
     },
   });
 
-  // Remove from wishlist mutation
+  // Remove
   const removeFromWishlistMutation = useMutation({
     mutationFn: async (productId: string) => {
-      const response = await api.delete<{ message: string; wishlist: string[] }>(`/api/users/wishlist/${productId}`);
+      const response = await api.delete(`/api/users/wishlist/${productId}`);
       return response.data;
     },
     onSuccess: (_, productId) => {
-      removeItem(productId);
-      // Refetch to sync with server
+      removeItem(productId); // 🔥 optimistic update
       queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-    },
-    onError: (error) => {
-      console.error('Failed to remove from wishlist:', error);
     },
   });
 
-  // Toggle wishlist
-  const toggleWishlist = (product: Product) => {
-    if (isInWishlist(product._id)) {
-      removeFromWishlistMutation.mutate(product._id);
-    } else {
-      addToWishlistMutation.mutate(product);
-    }
-  };
+  // Toggle
+const toggleWishlist = (product: Product) => {
+  if (isInWishlist(product._id)) {
+    removeItem(product._id); // update UI ngay
+    removeFromWishlistMutation.mutate(product._id);
+  } else {
+    addItem(product); // update UI ngay
+    addToWishlistMutation.mutate(product);
+  }
+};
 
   return {
     wishlistItems: items,
