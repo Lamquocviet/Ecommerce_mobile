@@ -28,10 +28,15 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
           </div>
         </div>
       </Link>
-      <div className="p-5 pt-0">
+      <div className="flex justify-between p-5 pt-0">
         <Button variant="secondary" onClick={onAddToCart}>
-          Add to cart
+          Thêm vào giỏ
         </Button>
+        <Link to = {`/product/${product._id}`}>
+          <Button className='bg-accent' onClick={onAddToCart}>
+          Mua ngay
+          </Button>
+        </Link>
       </div>
     </div>
   );

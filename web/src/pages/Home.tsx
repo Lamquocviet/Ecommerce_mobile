@@ -4,13 +4,19 @@ import { SkeletonLoader } from "@/components/SkeletonLoader";
 import { useCart } from "@/hooks/useCart";
 import { useProducts } from "@/hooks/useProducts";
 import { Sidebar } from "@/components/Sidebar";
+import { HeroBanner } from "@/components/HeroBanner";
 
 export const HomePage = () => {
   const { data, isLoading, isError, error } = useProducts();
   const { addToCart } = useCart();
 
   return (
-    <section className="flex space-y-10 lg:space-y-0 lg:space-x-10">
+    <div className="flex flex-col">
+      {/* Hero Banner - Full Width */}
+      <HeroBanner />
+      
+      {/* Products Section */}
+      <section className="flex space-y-10 lg:space-y-0 lg:space-x-10">
       <div className="w-64 shrink-0">
         <div className="sticky top-24 h-[calc(100vh-120px)] overflow-y-auto">
           
@@ -18,7 +24,7 @@ export const HomePage = () => {
         </div>
       </div>
       <div className="flex flex-col flex-1 space-y-10">
-        <div className="rounded-4xl border border-white/10 bg-card p-10 shadow-glow">
+        {/* <div className="rounded-4xl border border-white/10 bg-card p-10 shadow-glow">
           <div className="max-w-3xl space-y-6">
             <p className="text-sm uppercase tracking-[0.4em] text-white/40">
               Shop home
@@ -45,7 +51,7 @@ export const HomePage = () => {
               </Link>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {isError ? (
           <div className="rounded-4xl border border-white/10 bg-card p-8 text-center text-white/70">
@@ -75,6 +81,8 @@ export const HomePage = () => {
           </div>
         )}
       </div>
-    </section>
+      </section>
+    </div>
   );
 };
+
